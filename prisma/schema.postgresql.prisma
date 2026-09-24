@@ -1,0 +1,72 @@
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Customer {
+  id             String          @id @default(cuid())
+  name           String
+  email          String          @unique
+  phone          String?
+  createdAt      DateTime        @default(now())
+  orders         Order[]
+  refundRequests RefundRequest[]
+}
+
+model Order {
+  id             String          @id
+  customerId     String
+  customer       Customer        @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  purchaseDate   DateTime
+  deliveryDate   DateTime?
+  totalAmount    Float
+  status         String
+  isRefunded     Boolean         @default(false)
+  refundedAmount Float           @default(0)
+  createdAt      DateTime        @default(now())
+  items          OrderItem[]
+  refundRequests RefundRequest[]
+}
+
+model OrderItem {
+  id           String  @id @default(cuid())
+  orderId      String
+  order        Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productName  String
+  category     String
+  price        Float
+  quantity     Int     @default(1)
+  isRefundable Boolean @default(true)
+}
+
+model RefundRequest {
+  id                String     @id @default(cuid())
+  customerId        String
+  customer          Customer   @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  orderId           String
+  order             Order      @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  requestReason     String
+  requestedAmount   Float?
+  decision          String
+  approvedAmount    Float      @default(0)
+  explanation       String
+  policyCheckResult String
+  createdAt         DateTime   @default(now())
+  logs              AgentLog[]
+}
+
+model AgentLog {
+  id              String         @id @default(cuid())
+  refundRequestId String?
+  refundRequest   RefundRequest? @relation(fields: [refundRequestId], references: [id], onDelete: Cascade)
+  timestamp       DateTime       @default(now())
+  step            String
+  action          String
+  details         String
+  status          String
+}
