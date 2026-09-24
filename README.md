@@ -4,27 +4,27 @@ Production-ready Next.js 15 web application featuring an AI Customer Support Age
 
 ---
 
-## 🌟 Overview
+## 🌟 Overview & Problem Statement
 
-AutoRefund AI is designed to solve a critical issue in AI agent architectures: **financial reliability and policy compliance**. While OpenAI models handle natural language understanding and tool invocation planning, **the LLM is never the final authority on money approvals**. 
+AutoRefund AI solves a critical challenge in autonomous AI agent architectures: **financial reliability, policy compliance, and auditability**. While OpenAI LLMs excel at natural language understanding and flexible tool selection, **the LLM is never the final authority on money approvals**. 
 
-All refund requests are evaluated against a strict, server-side **Deterministic Policy Engine** (`lib/policy/refundPolicy.ts`) before any decision is executed in the CRM database.
+The deterministic policy engine is designed to enforce the defined refund rules independently of the LLM. All customer refund requests are strictly evaluated against server-side business rules (`lib/policy/refundPolicy.ts`) before any credit or database state change is committed.
 
 ---
 
 ## ✨ Features
 
-- **🤖 Function Calling AI Agent Loop**: OpenAI tool-orchestration loop dynamically invoking database lookup and policy validation tools.
-- **🛡️ Deterministic Backend Policy Engine**: Server-side policy engine that hard-enforces rules regardless of LLM generation.
-- **📊 15 Seeded CRM Mock Customers**: Pre-populated database featuring realistic customers, order histories, delivery dates, and product categories.
-- **⚡ Real-Time Live Execution Logs**: Structured audit logs capturing step-by-step agent tool calls, timestamps, parameters, and decision status.
-- **🖥️ Admin Dashboard & Analytics**: Audit portal for monitoring total requests, approval rates, dollar totals, recent audit trails, and CRM customer records.
-- **🚀 Dual Mode Agent Runner**: Includes an automatic deterministic agent fallback so the app, tests, and demo work 100% reliably with or without an active `OPENAI_API_KEY`.
-- **🧪 100% Automated Test Coverage**: Vitest suite verifying valid approvals, expired window denials, already refunded denials, digital category denials, and ownership mismatches.
+- **🤖 Tool-Calling AI Agent Loop**: OpenAI function-orchestration loop dynamically querying CRM customer profiles, order history, and policy rules.
+- **🛡️ Deterministic Backend Policy Engine**: Server-side policy engine that hard-enforces 30-day delivery limits, ownership, and product category exclusions regardless of LLM generation.
+- **📊 15 Seeded CRM Customer Profiles**: Pre-populated database featuring realistic mock customers, multi-order histories, delivery dates, and product categories.
+- **⚡ Real-Time Live Execution Logs**: Safe, structured audit logs capturing step-by-step agent tool calls, timestamps, parameters, and decision status.
+- **🖥️ Admin Dashboard & Analytics**: Real-time management portal displaying total requests, approval rates, dollar totals, audit trails, and CRM customer records.
+- **🚀 Dual-Mode Agent Runner**: Automatic fallback to a deterministic agent pipeline if `OPENAI_API_KEY` is missing or invalid, ensuring 100% test and demo reliability.
+- **🧪 Automated Test Coverage**: Vitest suite verifying valid approvals, expired window denials, already refunded denials, digital category denials, and ownership mismatches.
 
 ---
 
-## 🏗️ Architecture
+## 🏗️ System Architecture
 
 ```text
 User Request (Next.js Chat UI)
@@ -54,7 +54,7 @@ Customer Explanation + Admin Dashboard Telemetry
 
 - **Framework**: Next.js 15 (App Router, React 19, TypeScript)
 - **Styling**: Vanilla Tailwind CSS + Glassmorphic UI design system
-- **Database & ORM**: Prisma ORM with SQLite (`dev.db` for zero-setup local dev/testing) & PostgreSQL support
+- **Database & ORM**: Prisma ORM 5.22.0 (SQLite for local dev/testing, Supabase PostgreSQL for production)
 - **AI Agent**: OpenAI Function/Tool Calling API (`gpt-4o-mini`)
 - **Validation**: Zod schema validation for all API inputs and tool parameters
 - **Testing**: Vitest test runner
@@ -78,7 +78,31 @@ Customer Explanation + Admin Dashboard Telemetry
 
 ---
 
-## 👥 Seeded CRM Customer Test Scenarios (15 Customers)
+## 🔧 Agent & Tool Architecture
+
+The agent interacts with the system using explicit Zod-validated tool definitions (`lib/tools/index.ts`):
+- `getCustomer(query)`: Search customer records by email or ID.
+- `getCustomerOrders(customerId)`: Fetch all orders owned by a customer.
+- `getOrder(orderId)`: Fetch detailed order breakdown, delivery date, and refund status.
+- `getRefundPolicy()`: Retrieve official refund policy rules.
+- `validateRefundEligibility(orderId, customerId, reason, requestedAmount)`: Run deterministic policy checks.
+- `calculateRefundAmount(orderId)`: Calculate maximum refundable amount.
+- `processRefundDecision(orderId, customerId, decision, amount, reason)`: Execute decision and persist to database.
+
+---
+
+## 🗄️ Database Design
+
+The database schema (`prisma/schema.postgresql.prisma`) includes 5 core models:
+- **`Customer`**: Stores profile information (`id`, `name`, `email`, `phone`).
+- **`Order`**: Tracks purchases (`id`, `purchaseDate`, `deliveryDate`, `totalAmount`, `status`, `isRefunded`, `refundedAmount`).
+- **`OrderItem`**: Line items for orders (`productName`, `category`, `price`, `quantity`, `isRefundable`).
+- **`RefundRequest`**: Audit records for every processed refund (`decision`, `approvedAmount`, `explanation`, `policyCheckResult`).
+- **`AgentLog`**: Telemetry log entries capturing agent steps, actions, and status.
+
+---
+
+## 👥 15 Seeded CRM Customer Test Scenarios
 
 | Order ID | Customer Name | Email | Scenario / Test Case | Expected Result |
 | :--- | :--- | :--- | :--- | :--- |
@@ -108,7 +132,6 @@ Customer Explanation + Admin Dashboard Telemetry
    OPENAI_API_KEY="sk-proj-your-openai-api-key"
    NEXT_PUBLIC_APP_URL="http://localhost:3000"
    ```
-   > *Note: If `OPENAI_API_KEY` is omitted or left empty, the application automatically uses the built-in **Deterministic Fallback Agent Engine**, executing all tools and policy rules flawlessly.*
 3. **Database Setup & Seeding**:
    ```bash
    npx prisma generate
@@ -121,35 +144,14 @@ Customer Explanation + Admin Dashboard Telemetry
 
 ---
 
-### PRODUCTION DEPLOYMENT (Supabase PostgreSQL + Vercel)
-1. **Supabase Environment Variables**:
-   - `DATABASE_URL`: Transaction Pooler connection string (`port 6543`, e.g. `postgresql://USER:PASSWORD@TRANSACTION_POOLER_HOST:6543/postgres?pgbouncer=true`)
-   - `DIRECT_URL`: Session Pooler connection string (`port 5432`, e.g. `postgresql://USER:PASSWORD@SESSION_POOLER_HOST:5432/postgres`)
-   - `OPENAI_API_KEY`: OpenAI API Key
-   - `NEXT_PUBLIC_APP_URL`: Production Vercel App URL
-2. **Apply PostgreSQL Schema to Supabase**:
-   ```bash
-   npm run db:push:pg
-   ```
-3. **Seed Supabase PostgreSQL Database**:
-   ```bash
-   npm run db:seed
-   ```
-4. **Production Build Command**:
-   ```bash
-   npm run build:pg
-   ```
-
----
-
-## 🧪 Automated Testing & Verification
+## 🧪 Automated Testing
 
 Run the full automated Vitest suite:
 ```bash
 npm run test
 ```
 
-### Verified Test Cases:
+### Verified Test Suite:
 - `policyEngine.test.ts`:
   - `ORD-1001` (Valid) -> `APPROVE`
   - `ORD-1002` (Expired 45 days) -> `DENY (REFUND_WINDOW_EXCEEDED)`
@@ -161,44 +163,45 @@ npm run test
 
 ---
 
-## 🏗️ Production Build & Quality Control
+## ☁️ Production Deployment (Vercel + Supabase)
 
-Verify production build and TypeScript compilation:
-```bash
-npx tsc --noEmit
-npm run lint
-npm run build:pg
-```
-
----
-
-## ☁️ Deployment (Vercel Ready)
-
-1. Push code to GitHub repository.
-2. Import project in **Vercel**.
-3. Configure Environment Variables in Vercel settings:
-   - `DATABASE_URL` (Supabase Transaction Pooler URL, port 6543 with `?pgbouncer=true`)
-   - `DIRECT_URL` (Supabase Session Pooler URL, port 5432)
-   - `OPENAI_API_KEY`
-   - `NEXT_PUBLIC_APP_URL`
-4. Override Vercel Build Command to: `npm run build:pg` (which runs `prisma generate --schema=prisma/schema.postgresql.prisma && next build`).
-5. Deploy!
+1. **Environment Variables**:
+   - `DATABASE_URL`: Supabase Transaction Pooler URL (`port 6543`)
+   - `DIRECT_URL`: Supabase Session Pooler URL (`port 5432`)
+   - `OPENAI_API_KEY`: OpenAI API key
+   - `NEXT_PUBLIC_APP_URL`: Production application URL
+2. **Build Script**: `npm run build` generates the PostgreSQL client via `prisma/schema.postgresql.prisma` and builds Next.js.
 
 ---
 
-## 🎥 Demo Walkthrough Instructions (for Loom Video)
+## 🔒 Security Considerations
 
-1. **Demo Case 1 (Valid Refund)**:
-   - Select **Case 1: Valid Refund** in the Customer Refund Support UI.
-   - Click **Send**.
-   - Observe live step-by-step agent execution logs (`getCustomer` -> `getOrder` -> `validateRefundEligibility` -> `processRefundDecision`).
-   - Final Result: **REFUND APPROVED ($149.99)**.
+- **Server-Side Re-Validation**: `processRefundDecision` re-executes the policy engine server-side, preventing LLM parameter manipulation.
+- **No Secrets in Source/Logs**: Secrets are loaded exclusively via environment variables. Logs expose only sanitized event steps.
+- **Strict Input Parsing**: All API endpoints and tools validate inputs using Zod.
+- **Sanitized DB Connection URLs**: Runtime helper strips quotes/whitespace from database connection strings safely.
 
-2. **Demo Case 2 (Expired Window)**:
-   - Select **Case 2: Expired 30-Day Window**.
-   - Click **Send**.
-   - Final Result: **REFUND DENIED (Delivered 45 days ago, exceeds 30-day window)**.
+---
 
-3. **Admin Audit**:
-   - Navigate to `/admin`.
+## 🛡️ Failure & Fallback Behavior
+
+- **Deterministic Agent Fallback**: If `OPENAI_API_KEY` is omitted, missing, or encounters rate limits, the system seamlessly uses the built-in deterministic execution loop.
+- **No Accidental Approvals**: Tool or database errors default to a safe `DENY` decision with clear user explanation.
+
+---
+
+## 🖼️ Screenshots Section
+
+- **Customer Support Chat Interface**: Live interactive chat with demo preset selectors and policy verification breakdown badges.
+- **Admin Audit Dashboard**: Metrics, approval stats, dollar totals, and database audit trail.
+- **Structured Agent Telemetry Logs**: Real-time tool call inspection and step execution details.
+
+---
+
+## 🔗 Submission Links & Resources
+
+- **Deployed Application URL**: `https://autorefund-ai.vercel.app` *(or your Vercel deployment link)*
+- **Demo Video Walkthrough**: `[Loom / YouTube Demo Video Link Placeholder]`
+- **GitHub Repository**: `https://github.com/Abhijeet-0833/autorefund-ai`
+e to `/admin`.
    - View real-time request counters, approval percentages, and structured agent telemetry logs.
