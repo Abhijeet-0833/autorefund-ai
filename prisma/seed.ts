@@ -1,6 +1,18 @@
 import { PrismaClient } from "@prisma/client";
 
-const prisma = new PrismaClient();
+function getSanitizedDbUrl(): string | undefined {
+  let url = process.env.DATABASE_URL?.trim();
+  if (!url) return undefined;
+  if ((url.startsWith('"') && url.endsWith('"')) || (url.startsWith("'") && url.endsWith("'"))) {
+    url = url.slice(1, -1).trim();
+  }
+  return url;
+}
+
+const sanitizedUrl = getSanitizedDbUrl();
+const prisma = new PrismaClient({
+  ...(sanitizedUrl ? { datasources: { db: { url: sanitizedUrl } } } : {}),
+});
 
 async function main() {
   console.log("🌱 Clearing existing data...");

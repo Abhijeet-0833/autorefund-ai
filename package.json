@@ -10,7 +10,7 @@
     "postinstall": "prisma generate --schema=prisma/schema.postgresql.prisma",
     "start": "next start",
     "lint": "next lint",
-    "test": "vitest run",
+    "test": "prisma generate --schema=prisma/schema.prisma && vitest run",
     "test:watch": "vitest",
     "db:seed": "tsx prisma/seed.ts",
     "db:push:pg": "prisma db push --schema=prisma/schema.postgresql.prisma"
