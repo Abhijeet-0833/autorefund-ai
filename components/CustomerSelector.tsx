@@ -91,6 +91,50 @@ export const DEMO_PRESETS: DemoPreset[] = [
     description: "James owns two orders. ORD-1006A delivered 7 days ago is eligible.",
     icon: UserCheck,
   },
+  {
+    id: "case-7",
+    title: "Case 7: Customized Engraving",
+    badge: "DENY",
+    customerEmail: "robert.martinez@example.com",
+    customerName: "Robert Martinez",
+    orderId: "ORD-1007",
+    message: "I want to refund my custom signet ring order ORD-1007.",
+    description: "Delivered 8 days ago ($189.00 Engraved Ring). Customized items are non-refundable.",
+    icon: ShieldAlert,
+  },
+  {
+    id: "case-8",
+    title: "Case 8: Order In Transit",
+    badge: "DENY",
+    customerEmail: "emily.watson@example.com",
+    customerName: "Emily Watson",
+    orderId: "ORD-1008",
+    message: "Can I get a refund for order ORD-1008?",
+    description: "Order status SHIPPED ($210.00 Speakers). Must be delivered before refunding.",
+    icon: Clock,
+  },
+  {
+    id: "case-9",
+    title: "Case 9: Digital Gift Card",
+    badge: "DENY",
+    customerEmail: "michael.brown@example.com",
+    customerName: "Michael Brown",
+    orderId: "ORD-1009",
+    message: "I would like a refund for order ORD-1009.",
+    description: "Delivered 4 days ago ($100.00 Gift Card). Gift Card category is non-refundable.",
+    icon: ShieldAlert,
+  },
+  {
+    id: "case-10",
+    title: "Case 10: High-Value Furniture",
+    badge: "APPROVE",
+    customerEmail: "sophia.garcia@example.com",
+    customerName: "Sophia Garcia",
+    orderId: "ORD-1010",
+    message: "I need a refund for my ergonomic office chair order ORD-1010.",
+    description: "Delivered 16 days ago ($350.00 Office Chair). Meets all policy criteria.",
+    icon: CheckCircle2,
+  },
 ];
 
 interface CustomerSelectorProps {
@@ -120,7 +164,7 @@ export function CustomerSelector({ onSelectPreset, selectedPresetId }: CustomerS
         >
           {isCollapsed ? (
             <>
-              <span>Show Scenarios (6)</span>
+              <span>Show Scenarios ({DEMO_PRESETS.length})</span>
               <ChevronDown className="w-4 h-4 text-blue-400" />
             </>
           ) : (

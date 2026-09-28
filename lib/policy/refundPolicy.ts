@@ -139,7 +139,22 @@ export async function evaluateRefundPolicy(
   // Rule 5: 30-Day Refund Window Check
   const now = new Date();
   const deliveryDate = new Date(order.deliveryDate);
-  const diffTime = Math.abs(now.getTime() - deliveryDate.getTime());
+
+  if (isNaN(deliveryDate.getTime()) || deliveryDate.getTime() > now.getTime()) {
+    checks.within30DayWindow = false;
+    return {
+      eligible: false,
+      decision: "DENY",
+      reasonCode: "INVALID_DELIVERY_DATE",
+      explanation: `Order ${normalizedOrderId} does not have a valid past delivery date.`,
+      orderId: normalizedOrderId,
+      customerId: order.customerId,
+      calculatedAmount: 0,
+      checks,
+    };
+  }
+
+  const diffTime = now.getTime() - deliveryDate.getTime();
   const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
   checks.daysSinceDelivery = diffDays;
 

@@ -116,6 +116,11 @@ The database schema (`prisma/schema.postgresql.prisma`) includes 5 core models:
 | **ORD-1008** | Emily Watson | `emily.watson@example.com` | Order status SHIPPED (In Transit, Not Delivered) | **DENY** |
 | **ORD-1009** | Michael Brown | `michael.brown@example.com` | $100 Digital Gift Card (Gift Card Category) | **DENY** |
 | **ORD-1010** | Sophia Garcia | `sophia.garcia@example.com` | Ergonomic Office Chair ($350.00, delivered 16 days ago) | **APPROVE** |
+| **ORD-1011** | Daniel Kim | `daniel.kim@example.com` | Delivered 2 days ago ($89.99 Bluetooth Speaker) | **APPROVE** |
+| **ORD-1012** | Olivia Taylor | `olivia.taylor@example.com` | Gourmet Coffee Beans ($48.00 Perishable Category) | **DENY** |
+| **ORD-1013** | William Harris | `william.harris@example.com` | Delivered 28 days ago ($119.00 Fitness Tracker - Near Boundary) | **APPROVE** |
+| **ORD-1014** | Charlotte Clark | `charlotte.clark@example.com` | Order status CANCELLED ($65.00 Travel Backpack) | **DENY** |
+| **ORD-1015** | Lucas Lewis | `lucas.lewis@example.com` | Delivered 14 days ago ($499.99 4K Designer Monitor) | **APPROVE** |
 
 ---
 
@@ -132,10 +137,9 @@ The database schema (`prisma/schema.postgresql.prisma`) includes 5 core models:
    OPENAI_API_KEY="sk-proj-your-openai-api-key"
    NEXT_PUBLIC_APP_URL="http://localhost:3000"
    ```
-3. **Database Setup & Seeding**:
+3. **Database One-Step Setup & Seeding**:
    ```bash
-   npx prisma generate
-   npm run db:seed
+   npm run db:setup
    ```
 4. **Start Development Server**:
    ```bash
@@ -203,5 +207,5 @@ npm run test
 - **Deployed Application URL**: `https://autorefund-ai.vercel.app` *(or your Vercel deployment link)*
 - **Demo Video Walkthrough**: `[Loom / YouTube Demo Video Link Placeholder]`
 - **GitHub Repository**: `https://github.com/Abhijeet-0833/autorefund-ai`
-e to `/admin`.
-   - View real-time request counters, approval percentages, and structured agent telemetry logs.
+- **Admin Management Portal**: Navigate to `/admin` to view real-time request counters, approval percentages, and structured agent telemetry logs.
+

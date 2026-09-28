@@ -22,3 +22,5 @@ prisma/dev.db-journal
 *.pem
 .vscode/
 .idea/
+~$*
+
