@@ -4,10 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "prisma generate --schema=prisma/schema.prisma && next dev",
-    "build": "prisma generate --schema=prisma/schema.postgresql.prisma && next build",
+    "build": "prisma generate --schema=prisma/schema.prisma && next build",
     "build:pg": "prisma generate --schema=prisma/schema.postgresql.prisma && next build",
     "build:sqlite": "prisma generate --schema=prisma/schema.prisma && next build",
-    "postinstall": "prisma generate --schema=prisma/schema.postgresql.prisma",
+    "postinstall": "prisma generate --schema=prisma/schema.prisma",
     "start": "next start",
     "lint": "next lint",
     "test": "prisma generate --schema=prisma/schema.prisma && prisma db push --schema=prisma/schema.prisma && vitest run",
