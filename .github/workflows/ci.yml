@@ -9,6 +9,8 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: "file:./dev.db"
 
     steps:
       - name: Checkout repository
@@ -25,8 +27,6 @@ jobs:
 
       - name: Generate Prisma Client
         run: npx prisma generate --schema=prisma/schema.prisma
-        env:
-          DATABASE_URL: "file:./dev.db"
 
       - name: Type Check
         run: npx tsc --noEmit
@@ -39,5 +39,3 @@ jobs:
 
       - name: Run Build
         run: npm run build
-        env:
-          DATABASE_URL: "file:./dev.db"
